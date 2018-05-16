@@ -11,6 +11,9 @@ public class DubboResponseDecoder extends ByteToMessageDecoder {
     // header length.
     private static final int HEADER_LENGTH = 4 + 8 + 4;
 
+    // response status
+    private static final byte OK = 20;
+
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -21,13 +24,23 @@ public class DubboResponseDecoder extends ByteToMessageDecoder {
         in.markReaderIndex();
 
         // skip header flag part
-        in.skipBytes(4);
+        in.skipBytes(3);
+
+        // response status
+        byte status = in.readByte();
 
         long requestId = in.readLong();
         int dataLength = in.readInt();
 
         if (in.readableBytes() < dataLength) {
             in.resetReaderIndex();
+            return;
+        }
+
+        // ignore other response
+        if (status !=  OK) {
+            System.out.println("error status " + status);
+            in.skipBytes(dataLength);
             return;
         }
 
