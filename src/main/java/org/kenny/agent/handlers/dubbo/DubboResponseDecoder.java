@@ -37,9 +37,8 @@ public class DubboResponseDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        // ignore other response
+        // ignore any response
         if (status !=  OK) {
-            System.out.println("error status " + status);
             in.skipBytes(dataLength);
             return;
         }

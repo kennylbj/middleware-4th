@@ -2,14 +2,21 @@ package org.kenny.agent.domain;
 
 import lombok.Data;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 @Data
 public class AgentRequest {
+    private static final AtomicLong cnt = new AtomicLong();
     private long requestId;
     // alias for interface
     private String service;
     private String method;
     private String parameterTypesString;
     private String parameter;
+
+    public AgentRequest(){
+        requestId = cnt.getAndIncrement();
+    }
 
     public long getRequestId() {
         return requestId;

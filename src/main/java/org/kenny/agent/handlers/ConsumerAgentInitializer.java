@@ -13,7 +13,7 @@ public class ConsumerAgentInitializer extends ChannelInitializer<SocketChannel> 
     public void initChannel(SocketChannel ch) {
         ChannelPipeline p = ch.pipeline();
         p.addLast(new HttpServerCodec());
-        p.addLast(new HttpObjectAggregator(128 * 1024));
+        p.addLast(new HttpObjectAggregator(32 * 1024));
         p.addLast(new HttpServerHandler());
     }
 }

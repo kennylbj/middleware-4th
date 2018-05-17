@@ -13,11 +13,11 @@ import org.kenny.agent.handlers.ConsumerAgentInitializer;
 import org.kenny.agent.handlers.ProducerAgentInitializer;
 
 public class Main {
-    private static final int PORT = Integer.parseInt(System.getProperty("port","8080"));
+    private static final int PORT = Integer.parseInt(System.getProperty("port","8081"));
     private static final String CONSUMER = "consumer";
     private static final String PRODUCER = "producer";
     public static void main(String[] args) throws Exception {
-        String type = System.getProperty("type", "consumer");
+        String type = System.getProperty("type", "producer");
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 

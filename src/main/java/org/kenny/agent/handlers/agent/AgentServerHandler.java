@@ -1,6 +1,7 @@
 package org.kenny.agent.handlers.agent;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import org.kenny.agent.domain.AgentRequest;
 import org.kenny.agent.handlers.dubbo.DubboClientInitializer;
@@ -41,5 +42,12 @@ public class AgentServerHandler extends SimpleChannelInboundHandler<AgentRequest
     protected void channelRead0(ChannelHandlerContext ctx, AgentRequest msg) throws Exception {
         // write request through outbound channel
         outboundChannel.writeAndFlush(msg);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        if (outboundChannel != null && outboundChannel.isActive()) {
+            outboundChannel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+        }
     }
 }
