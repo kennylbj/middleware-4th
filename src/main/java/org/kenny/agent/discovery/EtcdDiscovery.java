@@ -19,12 +19,14 @@ import java.util.concurrent.ExecutionException;
  */
 public class EtcdDiscovery implements Discovery {
     private static final String ROOT = "dubbomesh";
+    private static final String SERVICE_NAME = "com.alibaba.dubbo.performance.demo.provider.IHelloService";
     private static final int LEASE_TIME = 30;
     private final Client client;
     private final long leaseId;
 
     public EtcdDiscovery() {
         String url = System.getProperty("etcd.url");
+        System.out.println("etcd url: " + url);
         this.client = Client.builder().endpoints(url).build();
         try {
             this.leaseId = client.getLeaseClient().grant(LEASE_TIME).get().getID();
@@ -35,7 +37,7 @@ public class EtcdDiscovery implements Discovery {
             String type = System.getProperty("type");
             if ("provider".equals(type)){
                 int port = Integer.valueOf(System.getProperty("server.port"));
-                register("com.alibaba.dubbo.performance.demo.provider.IHelloService", port);
+                register(SERVICE_NAME, port);
             }
 
         } catch (Exception e) {
@@ -47,7 +49,7 @@ public class EtcdDiscovery implements Discovery {
     public void register(String serviceName, int port) throws Exception {
         String hostIp = InetAddress.getLocalHost().getHostAddress();
         String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}",ROOT, serviceName, hostIp, port);
-        System.out.println(strKey);
+        System.out.println("register key: " + strKey);
         ByteSequence key = ByteSequence.fromString(strKey);
         ByteSequence val = ByteSequence.fromString("");
         client.getKVClient().put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
@@ -64,7 +66,8 @@ public class EtcdDiscovery implements Discovery {
     @Override
     public List<Agent> discover(String serviceName) {
         String strKey = MessageFormat.format("/{0}/{1}", ROOT, serviceName);
-        ByteSequence key  = ByteSequence.fromString(strKey);
+        System.out.println("find strkey: " + strKey);
+        ByteSequence key = ByteSequence.fromString(strKey);
         GetResponse response = null;
         try {
             response = client.getKVClient().get(key, GetOption.newBuilder().withPrefix(key).build()).get();
@@ -73,7 +76,6 @@ public class EtcdDiscovery implements Discovery {
         }
 
         List<Agent> agents = new ArrayList<>();
-
         for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()){
             String s = kv.getKey().toStringUtf8();
             int index = s.lastIndexOf("/");
@@ -87,6 +89,7 @@ public class EtcdDiscovery implements Discovery {
             agent.setPort(port);
             agent.setServiceName(serviceName);
             agents.add(agent);
+            System.out.println("find agent: " + host + ":" + port);
         }
         return agents;
     }
