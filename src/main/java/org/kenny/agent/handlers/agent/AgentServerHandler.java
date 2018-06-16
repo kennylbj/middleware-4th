@@ -9,11 +9,10 @@ import org.kenny.agent.handlers.dubbo.DubboClientInitializer;
 public class AgentServerHandler extends SimpleChannelInboundHandler<AgentRequest> {
 
     private Channel outboundChannel;
+    private final int DUBBO_PORT = Integer.valueOf(System.getProperty("dubbo.protocol.port", "20880"));
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        // System.out.println("init AgentServerHandler by tid: " + Thread.currentThread().getId());
-
         Channel inboundChannel = ctx.channel();
         // disable auto read till connection complete
         inboundChannel.config().setAutoRead(false);
@@ -23,7 +22,7 @@ public class AgentServerHandler extends SimpleChannelInboundHandler<AgentRequest
         b.group(inboundChannel.eventLoop())
                 .channel(ctx.channel().getClass())
                 .handler(new DubboClientInitializer(inboundChannel));
-        ChannelFuture f = b.connect("localhost", 20880);
+        ChannelFuture f = b.connect("localhost", DUBBO_PORT);
         outboundChannel = f.channel();
         f.addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
