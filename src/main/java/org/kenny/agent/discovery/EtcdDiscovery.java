@@ -26,7 +26,7 @@ public class EtcdDiscovery implements Discovery {
 
     public EtcdDiscovery() {
         String url = System.getProperty("etcd.url");
-        System.out.println("etcd url: " + url);
+        System.err.println("etcd url: " + url);
         this.client = Client.builder().endpoints(url).build();
         try {
             this.leaseId = client.getLeaseClient().grant(LEASE_TIME).get().getID();
@@ -49,7 +49,7 @@ public class EtcdDiscovery implements Discovery {
     public void register(String serviceName, int port) throws Exception {
         String hostIp = InetAddress.getLocalHost().getHostAddress();
         String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}",ROOT, serviceName, hostIp, port);
-        System.out.println("register key: " + strKey);
+        System.err.println("register key: " + strKey);
         ByteSequence key = ByteSequence.fromString(strKey);
         ByteSequence val = ByteSequence.fromString("");
         client.getKVClient().put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
@@ -66,7 +66,7 @@ public class EtcdDiscovery implements Discovery {
     @Override
     public List<Agent> discover(String serviceName) {
         String strKey = MessageFormat.format("/{0}/{1}", ROOT, serviceName);
-        System.out.println("find strkey: " + strKey);
+        System.err.println("find strkey: " + strKey);
         ByteSequence key = ByteSequence.fromString(strKey);
         GetResponse response = null;
         try {
@@ -89,7 +89,7 @@ public class EtcdDiscovery implements Discovery {
             agent.setPort(port);
             agent.setServiceName(serviceName);
             agents.add(agent);
-            System.out.println("find agent: " + host + ":" + port);
+            System.err.println("find agent: " + host + ":" + port);
         }
         return agents;
     }
