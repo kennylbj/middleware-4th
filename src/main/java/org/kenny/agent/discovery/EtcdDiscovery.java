@@ -48,7 +48,7 @@ public class EtcdDiscovery implements Discovery {
     @Override
     public void register(String serviceName, int port) throws Exception {
         String hostIp = InetAddress.getLocalHost().getHostAddress();
-        String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}",ROOT, serviceName, hostIp, port);
+        String strKey = MessageFormat.format("/{0}/{1}/{2}:{3, number, #}",ROOT, serviceName, hostIp, port);
         System.err.println("register key: " + strKey);
         ByteSequence key = ByteSequence.fromString(strKey);
         ByteSequence val = ByteSequence.fromString("");
@@ -58,7 +58,7 @@ public class EtcdDiscovery implements Discovery {
     @Override
     public void unregister(String serviceName, int port) throws Exception {
         String hostIp = InetAddress.getLocalHost().getHostAddress();
-        String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}",ROOT, serviceName, hostIp, port);
+        String strKey = MessageFormat.format("/{0}/{1}/{2}:{3, number, #}",ROOT, serviceName, hostIp, port);
         ByteSequence key = ByteSequence.fromString(strKey);
         client.getKVClient().delete(key).get();
     }
