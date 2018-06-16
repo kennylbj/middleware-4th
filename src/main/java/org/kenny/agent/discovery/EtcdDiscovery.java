@@ -25,7 +25,7 @@ public class EtcdDiscovery implements Discovery {
     private final long leaseId;
 
     public EtcdDiscovery() {
-        String url = System.getProperty("etcd.url", "etcd");
+        String url = System.getProperty("etcd.url");
         System.err.println("etcd url: " + url);
         this.client = Client.builder().endpoints(url).build();
         try {
@@ -36,7 +36,7 @@ public class EtcdDiscovery implements Discovery {
 
             String type = System.getProperty("type");
             if ("provider".equals(type)){
-                int port = Integer.valueOf(System.getProperty("server.port", "3000"));
+                int port = Integer.valueOf(System.getProperty("server.port"));
                 register(SERVICE_NAME, port);
             }
 

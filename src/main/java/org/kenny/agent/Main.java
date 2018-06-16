@@ -15,7 +15,7 @@ import org.kenny.agent.handlers.ProducerAgentInitializer;
 
 public class Main {
     // 2000 for consumer agent and 3000 for provider agent
-    private static final int PORT = Integer.parseInt(System.getProperty("server.port", "2000"));
+    private static final int PORT = Integer.parseInt(System.getProperty("server.port"));
     private static final String CONSUMER = "consumer";
     private static final String PROVIDER = "provider";
 
