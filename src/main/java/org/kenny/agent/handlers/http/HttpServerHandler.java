@@ -22,13 +22,17 @@ import java.util.Map;
 
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-    private final Discovery discovery = new EtcdDiscovery();
+    private final Discovery discovery;
 
     private final LoadBalancer loadBalancer = new RoundRobinLoadBalancer();
 
     private final ThreadLocalHolder holder = ThreadLocalHolder.getInstance();
 
     private final List<AgentRequest> pendingTasks = new ArrayList<>();
+
+    public HttpServerHandler(Discovery discovery) {
+        this.discovery = discovery;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
