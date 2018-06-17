@@ -7,9 +7,9 @@ import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.PutOption;
 import org.kenny.agent.domain.Agent;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -24,9 +24,12 @@ public class EtcdDiscovery implements Discovery {
     private final Client client;
     private final long leaseId;
 
+    // use volatile to guarantee the visibility of agents
+    @GuardedBy("this")
+    private volatile List<Agent> agents;
+
     public EtcdDiscovery() {
         String url = System.getProperty("etcd.url");
-        System.err.println("etcd url: " + url);
         this.client = Client.builder().endpoints(url).build();
         try {
             this.leaseId = client.getLeaseClient().grant(LEASE_TIME).get().getID();
@@ -49,7 +52,7 @@ public class EtcdDiscovery implements Discovery {
     public void register(String serviceName, int port) throws Exception {
         String hostIp = InetAddress.getLocalHost().getHostAddress();
         String strKey = "/" + ROOT + "/" + serviceName + "/" + hostIp + ":" + port;
-        System.err.println("register key: " + strKey);
+        System.err.println("register hostname: " + InetAddress.getLocalHost().getHostName());
         ByteSequence key = ByteSequence.fromString(strKey);
         ByteSequence val = ByteSequence.fromString("");
         client.getKVClient().put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
@@ -65,33 +68,37 @@ public class EtcdDiscovery implements Discovery {
 
     @Override
     public List<Agent> discover(String serviceName) {
-        String strKey = "/" + ROOT + "/" + serviceName;
-        System.err.println("find strkey: " + strKey);
-        ByteSequence key = ByteSequence.fromString(strKey);
-        GetResponse response = null;
-        try {
-            response = client.getKVClient().get(key, GetOption.newBuilder().withPrefix(key).build()).get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+        if (agents == null) {
+            synchronized (this) {
+                if (agents == null) {
+                    agents = new ArrayList<>();
+                    String strKey = "/" + ROOT + "/" + serviceName;
+                    ByteSequence key = ByteSequence.fromString(strKey);
+                    GetResponse response = null;
+                    try {
+                        response = client.getKVClient().get(key, GetOption.newBuilder().withPrefix(key).build()).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()){
+                        String s = kv.getKey().toStringUtf8();
+                        int index = s.lastIndexOf("/");
+                        String endpointStr = s.substring(index + 1,s.length());
 
-        List<Agent> agents = new ArrayList<>();
-        for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()){
-            String s = kv.getKey().toStringUtf8();
-            int index = s.lastIndexOf("/");
-            String endpointStr = s.substring(index + 1,s.length());
+                        String host = endpointStr.split(":")[0];
+                        int port = Integer.valueOf(endpointStr.split(":")[1]);
 
-            String host = endpointStr.split(":")[0];
-            int port = Integer.valueOf(endpointStr.split(":")[1]);
-
-            Agent agent = new Agent();
-            agent.setHost(host);
-            agent.setPort(port);
-            agent.setServiceName(serviceName);
-            agents.add(agent);
-            System.err.println("find agent: " + host + ":" + port);
+                        Agent agent = new Agent();
+                        agent.setHost(host);
+                        agent.setPort(port);
+                        agent.setServiceName(serviceName);
+                        agents.add(agent);
+                    }
+                }
+            }
         }
         return agents;
+
     }
 
     @Override
