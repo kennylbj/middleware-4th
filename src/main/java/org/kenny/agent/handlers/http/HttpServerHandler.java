@@ -7,7 +7,6 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.CharsetUtil;
 import org.kenny.agent.ThreadLocalHolder;
 import org.kenny.agent.discovery.Discovery;
-import org.kenny.agent.discovery.EtcdDiscovery;
 import org.kenny.agent.domain.AgentRequest;
 import org.kenny.agent.handlers.agent.AgentClientInitializer;
 import org.kenny.agent.loadbalancer.LoadBalancer;
@@ -87,7 +86,6 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                 outboundChannel.writeAndFlush(request);
             } else {
                 pendingTasks.add(request);
-                System.out.println("add task");
             }
         }
     }

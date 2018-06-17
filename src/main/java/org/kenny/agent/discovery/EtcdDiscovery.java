@@ -79,7 +79,6 @@ public class EtcdDiscovery implements Discovery {
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
-                    System.err.println("etcd size: " + response.getKvs().size());
                     for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()){
                         String s = kv.getKey().toStringUtf8();
                         int index = s.lastIndexOf("/");

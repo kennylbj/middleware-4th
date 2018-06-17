@@ -12,8 +12,6 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 
 public class DubboRequestEncoder extends MessageToByteEncoder<AgentRequest> {
-    // header length.
-    private static final int HEADER_LENGTH = 16;
     // magic header.
     private static final short MAGIC = (short) 0xdabb;
 

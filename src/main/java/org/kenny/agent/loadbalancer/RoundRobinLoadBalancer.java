@@ -16,11 +16,11 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
         // range is [0, 1, 2, 3, 4, 5]
         int range = random.nextInt(6);
         if (range < 1) {
-            return agents.get(0);
+            return agents.get(2);
         }
         if (range < 3) {
             return agents.get(1);
         }
-        return agents.get(2);
+        return agents.get(0);
     }
 }
