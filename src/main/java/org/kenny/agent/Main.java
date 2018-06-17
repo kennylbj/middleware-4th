@@ -13,6 +13,9 @@ import org.kenny.agent.discovery.EtcdDiscovery;
 import org.kenny.agent.handlers.ConsumerAgentInitializer;
 import org.kenny.agent.handlers.ProducerAgentInitializer;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Main {
     // 2000 for consumer agent and 3000 for provider agent
     private static final int PORT = Integer.parseInt(System.getProperty("server.port"));
@@ -27,11 +30,11 @@ public class Main {
         Discovery discovery = new EtcdDiscovery();
         try {
             ServerBootstrap b = new ServerBootstrap();
-            b.option(ChannelOption.SO_BACKLOG, 1024);
-
+            b.option(ChannelOption.SO_BACKLOG, 600);
+            // FIXME switch to epoll Channel
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO));
+                    .handler(new LoggingHandler(LogLevel.ERROR));
             if (CONSUMER.equals(type)) {
                 b.childHandler(new ConsumerAgentInitializer(discovery));
             } else if (PROVIDER.equals(type)) {

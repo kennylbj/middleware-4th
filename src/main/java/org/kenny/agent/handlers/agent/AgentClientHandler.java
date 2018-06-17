@@ -25,7 +25,6 @@ public class AgentClientHandler extends SimpleChannelInboundHandler<AgentRespons
         String result = String.valueOf(msg.getResult());
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(result.getBytes()));
 
-        // response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/x-www-form-urlencoded");
         response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
