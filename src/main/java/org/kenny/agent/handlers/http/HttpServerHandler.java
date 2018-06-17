@@ -40,8 +40,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
         List<Agent> agents = discovery.discover(request.getService());
         Agent agent = loadBalancer.balance(agents);
-        Channel inboundChannel = ctx.channel();
+        if (agent == null) {
+            pendingTasks.add(request);
+            return;
+        }
 
+        Channel inboundChannel = ctx.channel();
         if (!holder.getAgentChannelMapLocal().get().containsKey(agent)) {
             // disable auto read till connection complete
             inboundChannel.config().setAutoRead(false);

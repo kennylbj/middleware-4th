@@ -10,8 +10,9 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
     @Override
     public Agent balance(List<Agent> agents) {
         if (agents.size() != 3) {
-            return agents.get(0);
+            return null;
         }
+
         // next is [0, 1, 2, 3, 4, 5]
         next++;
         if (next == 6) {

@@ -78,7 +78,7 @@ public class EtcdDiscovery implements Discovery {
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
-                    for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()){
+                    for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()) {
                         String s = kv.getKey().toStringUtf8();
                         int index = s.lastIndexOf("/");
                         String endpointStr = s.substring(index + 1,s.length());
@@ -90,7 +90,6 @@ public class EtcdDiscovery implements Discovery {
                         agent.setHost(host);
                         agent.setPort(port);
                         agent.setServiceName(serviceName);
-                        System.err.println("agent host: " + agent.getHost());
                         agents.add(agent);
                     }
                 }

@@ -16,7 +16,7 @@ public class ThreadLocalHolder {
         private static ThreadLocalHolder singleton = new ThreadLocalHolder();
     }
 
-    private ThreadLocalHolder(){
+    private ThreadLocalHolder() {
         agentChannelMapLocal = ThreadLocal.withInitial(HashMap::new);
         idChannelMapLocal = ThreadLocal.withInitial(HashMap::new);
     }
