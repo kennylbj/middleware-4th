@@ -25,7 +25,7 @@ public class EtcdDiscovery implements Discovery {
     private final long leaseId;
 
     // use volatile to guarantee the visibility of agents
-    @GuardedBy("EtcdDiscovery.class")
+    @GuardedBy("this")
     private volatile List<Agent> agents;
 
     public EtcdDiscovery() {
@@ -42,7 +42,6 @@ public class EtcdDiscovery implements Discovery {
                 int port = Integer.valueOf(System.getProperty("server.port"));
                 register(SERVICE_NAME, port);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Fail to start etcd discovery");
