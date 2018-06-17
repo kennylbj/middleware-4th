@@ -31,4 +31,9 @@ public class Agent {
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
     }
+
+    @Override
+    public String toString() {
+        return host + ":" + port + "/" + serviceName;
+    }
 }

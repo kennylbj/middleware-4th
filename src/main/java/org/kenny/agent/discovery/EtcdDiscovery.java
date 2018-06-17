@@ -25,7 +25,7 @@ public class EtcdDiscovery implements Discovery {
     private final long leaseId;
 
     // use volatile to guarantee the visibility of agents
-    @GuardedBy("this")
+    @GuardedBy("EtcdDiscovery.class")
     private volatile List<Agent> agents;
 
     public EtcdDiscovery() {
@@ -52,7 +52,6 @@ public class EtcdDiscovery implements Discovery {
     public void register(String serviceName, int port) throws Exception {
         String hostIp = InetAddress.getLocalHost().getHostAddress();
         String strKey = "/" + ROOT + "/" + serviceName + "/" + hostIp + ":" + port;
-        System.err.println("register hostname: " + InetAddress.getLocalHost().getHostName());
         ByteSequence key = ByteSequence.fromString(strKey);
         ByteSequence val = ByteSequence.fromString("");
         client.getKVClient().put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
@@ -69,7 +68,7 @@ public class EtcdDiscovery implements Discovery {
     @Override
     public List<Agent> discover(String serviceName) {
         if (agents == null) {
-            synchronized (this) {
+            synchronized (EtcdDiscovery.class) {
                 if (agents == null) {
                     agents = new ArrayList<>();
                     String strKey = "/" + ROOT + "/" + serviceName;
@@ -80,6 +79,7 @@ public class EtcdDiscovery implements Discovery {
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
+                    System.err.println("etcd size: " + response.getKvs().size());
                     for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()){
                         String s = kv.getKey().toStringUtf8();
                         int index = s.lastIndexOf("/");
@@ -92,6 +92,7 @@ public class EtcdDiscovery implements Discovery {
                         agent.setHost(host);
                         agent.setPort(port);
                         agent.setServiceName(serviceName);
+                        System.err.println("agent host: " + agent.getHost());
                         agents.add(agent);
                     }
                 }
@@ -106,4 +107,5 @@ public class EtcdDiscovery implements Discovery {
         // this will close lease client and kv client implicitly
         client.close();
     }
+
 }
