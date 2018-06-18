@@ -18,11 +18,9 @@ public class Main {
     private static final String PROVIDER = "provider";
 
     public static void main(String[] args) throws Exception {
-        int cores = Runtime.getRuntime().availableProcessors();
-        System.err.println("core number: " + cores);
         String type = System.getProperty("type", "consumer");
-        EventLoopGroup bossGroup = new NioEventLoopGroup(4);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(16);
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(8);
 
         Discovery discovery = new EtcdDiscovery();
         try {
