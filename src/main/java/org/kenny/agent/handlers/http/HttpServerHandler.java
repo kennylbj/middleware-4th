@@ -25,9 +25,11 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
     private final LoadBalancer loadBalancer = new RoundRobinLoadBalancer();
 
-    private final ThreadLocalHolder holder = ThreadLocalHolder.getInstance();
-
     private final List<AgentRequest> pendingTasks = new ArrayList<>();
+
+    private final Map<Agent, Channel> agentChannelMap = ThreadLocalHolder.getInstance().getAgentChannelMapLocal().get();
+
+    private final Map<Long, Channel> idChannelMap = ThreadLocalHolder.getInstance().getIdChannelMapLocal().get();
 
     public HttpServerHandler(Discovery discovery) {
         this.discovery = discovery;
@@ -46,7 +48,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         }
 
         Channel inboundChannel = ctx.channel();
-        if (!holder.getAgentChannelMapLocal().get().containsKey(agent)) {
+        if (!agentChannelMap.containsKey(agent)) {
             // disable auto read till connection complete
             inboundChannel.config().setAutoRead(false);
 
@@ -60,11 +62,11 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                     .handler(new AgentClientInitializer());
 
             ChannelFuture f = b.connect(agent.getHost(), agent.getPort());
-            holder.getAgentChannelMapLocal().get().put(agent, f.channel());
+            agentChannelMap.put(agent, f.channel());
 
             f.addListener((ChannelFutureListener) future -> {
                 if (future.isSuccess()) {
-                    holder.getIdChannelMapLocal().get().put(request.getRequestId(), inboundChannel);
+                    idChannelMap.put(request.getRequestId(), inboundChannel);
 
                     // connection complete start to read first data
                     inboundChannel.config().setAutoRead(true);
@@ -77,16 +79,16 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                 }
             });
         } else {
-            Channel outboundChannel = holder.getAgentChannelMapLocal().get().get(agent);
+            Channel outboundChannel = agentChannelMap.get(agent);
             if (outboundChannel.isWritable()) {
                 // execute pending tasks
                 pendingTasks.forEach(task -> {
                     outboundChannel.writeAndFlush(task);
-                    holder.getIdChannelMapLocal().get().put(task.getRequestId(), inboundChannel);
+                    idChannelMap.put(task.getRequestId(), inboundChannel);
                 });
                 pendingTasks.clear();
 
-                holder.getIdChannelMapLocal().get().put(request.getRequestId(), inboundChannel);
+                idChannelMap.put(request.getRequestId(), inboundChannel);
                 outboundChannel.writeAndFlush(request);
             } else {
                 pendingTasks.add(request);
