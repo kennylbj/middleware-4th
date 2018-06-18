@@ -33,8 +33,7 @@ public class Main {
             b.option(ChannelOption.SO_BACKLOG, 600);
             // FIXME switch to epoll Channel
             b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.ERROR));
+                    .channel(NioServerSocketChannel.class);
             if (CONSUMER.equals(type)) {
                 b.childHandler(new ConsumerAgentInitializer(discovery));
             } else if (PROVIDER.equals(type)) {
