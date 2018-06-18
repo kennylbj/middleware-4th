@@ -4,8 +4,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.kenny.agent.discovery.Discovery;
 import org.kenny.agent.discovery.EtcdDiscovery;
 import org.kenny.agent.handlers.ConsumerAgentInitializer;
@@ -18,17 +18,18 @@ public class Main {
     private static final String PROVIDER = "provider";
 
     public static void main(String[] args) throws Exception {
+        int cores = Runtime.getRuntime().availableProcessors();
+        System.err.println("core number: " + cores);
         String type = System.getProperty("type", "consumer");
-        EventLoopGroup bossGroup = new EpollEventLoopGroup(1);
-        EventLoopGroup workerGroup = new EpollEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(4);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(16);
 
         Discovery discovery = new EtcdDiscovery();
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.option(ChannelOption.SO_BACKLOG, 600);
-            // FIXME switch to epoll Channel
             b.group(bossGroup, workerGroup)
-                    .channel(EpollServerSocketChannel.class);
+                    .channel(NioServerSocketChannel.class);
             if (CONSUMER.equals(type)) {
                 b.childHandler(new ConsumerAgentInitializer(discovery));
             } else if (PROVIDER.equals(type)) {
