@@ -4,17 +4,12 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import org.kenny.agent.discovery.Discovery;
 import org.kenny.agent.discovery.EtcdDiscovery;
 import org.kenny.agent.handlers.ConsumerAgentInitializer;
 import org.kenny.agent.handlers.ProducerAgentInitializer;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Main {
     // 2000 for consumer agent and 3000 for provider agent
@@ -24,8 +19,8 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         String type = System.getProperty("type", "consumer");
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new EpollEventLoopGroup(1);
+        EventLoopGroup workerGroup = new EpollEventLoopGroup();
 
         Discovery discovery = new EtcdDiscovery();
         try {
@@ -33,7 +28,7 @@ public class Main {
             b.option(ChannelOption.SO_BACKLOG, 600);
             // FIXME switch to epoll Channel
             b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class);
+                    .channel(EpollServerSocketChannel.class);
             if (CONSUMER.equals(type)) {
                 b.childHandler(new ConsumerAgentInitializer(discovery));
             } else if (PROVIDER.equals(type)) {
