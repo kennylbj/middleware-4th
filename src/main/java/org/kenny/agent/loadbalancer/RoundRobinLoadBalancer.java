@@ -13,15 +13,15 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
             return null;
         }
 
-        // 2 : 3 : 4
+        // 3 : 4 : 5
         next++;
-        if (next == 9) {
+        if (next == 12) {
             next = 0;
         }
-        if (next < 2) {
+        if (next < 3) {
             return agents.get(0);
         }
-        if (next < 5) {
+        if (next < 7) {
             return agents.get(1);
         }
         return agents.get(2);
